@@ -1,1 +1,132 @@
+from google.colab import drive
+drive.mount('/content/drive')
+
+Link to data:
+
+https://drive.google.com/file/d/1rolp8QqyKkvxJwlBAPPGtG2f3JA7hMwk/view
+
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2
+import tensorflow as tf
+from PIL import Image
+
+from tensorflow.keras.applications.mobilenet import preprocess_input
+from tensorflow.keras.applications.mobilenet import MobileNet
+from tensorflow.keras.layers import Concatenate, UpSampling2D, Conv2D, Reshape
+from tensorflow.keras.losses import binary_crossentropy
+from tensorflow.keras.backend import log, epsilon
+from tensorflow.keras.models import Model
+from tensorflow.keras.utils import Sequence
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import binary_crossentropy
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+
+%matplotlib inline
+
+images_numpy_file = np.load('/content/drive/My Drive/DeepLearningProject_Academics/Data/FaceDetection/images.npy', allow_pickle=True)
+
+images_numpy_file.shape
+
+images_numpy_file[0][0].shape
+
+fig=plt.figure(figsize=(40, 40))
+columns = 3
+rows = 3
+for i in range(1, columns*rows+1):
+    img = images_numpy_file[i][0]
+    fig.add_subplot(rows, columns, i)
+    plt.imshow(img)
+    print(images_numpy_file[i][1])
+    plt.show()
+
+# There a 2x and 2y if there is a single face in the image, i.e bounding box xmin, xmax & ymin, ymax
+
+IMAGE_WIDTH = 224
+IMAGE_HEIGHT = 224
+
+masks = np.zeros((int(images_numpy_file.shape[0]), IMAGE_HEIGHT, IMAGE_WIDTH))
+X_train = np.zeros((int(images_numpy_file.shape[0]), IMAGE_HEIGHT, IMAGE_WIDTH, 3))
+
+#Creating an initial mask with all zeros in all the pixels. Then using the bounding boxess, we will create 1's in the face
+# and zeros's in background
+
+for index in range(images_numpy_file.shape[0]): # Looping through each image
+    img = images_numpy_file[index][0] # Getting each image, as index[0] represent image, index[1] represents the metadata of image in our data
+    img = cv2.resize(img, dsize=(IMAGE_HEIGHT, IMAGE_WIDTH), interpolation=cv2.INTER_CUBIC) #Resizing our image to our defined height and width
+    try:
+      img = img[:, :, :3]
+    except:
+      continue
+    X_train[index] = preprocess_input(np.array(img, dtype=np.float32))
+    for i in images_numpy_file[index][1]: #Getting the bounding box co-ordinates
+        x1 = int(i["points"][0]['x'] * IMAGE_WIDTH) #Get the xmin and normalize the xmin as per the image height and width we have defined
+        x2 = int(i["points"][1]['x'] * IMAGE_WIDTH) #Get the xMax and normalize the xmax as per the image height and width we have defined
+        y1 = int(i["points"][0]['y'] * IMAGE_HEIGHT) #Get the yMin and normalize the ymin as per the image height and width we have defined
+        y2 = int(i["points"][1]['y'] * IMAGE_HEIGHT) #Get the yMax and normalize the ymax as per the image height and width we have defined
+        masks[index][y1:y2, x1:x2] = 1 #Creating 1's in the bounding boxes area in the image
+ 
+ALPHA = 1.0
+Epochs = 50
+Batch_size =1
+Patience = 50
+
+def Create_Model(trainable=True):
+  model = MobileNet(input_shape=(IMAGE_HEIGHT,IMAGE_WIDTH,3),include_top=False,alpha=ALPHA,weights='imagenet')
+  for layer in model.layers:
+    layer.trainable=trainable # Mobilenet provides output image size of 7*7. 
+  
+  # Image resolution is lost as we do pooling and filter layers. So we resort to Unet architechture and upsample the lost resolution
+  
+  block = model.get_layer("conv_pw_1_relu").output # 112 * 112 image size
+  block1 = model.get_layer("conv_pw_3_relu").output # 56 * 56 image size
+  block2 = model.get_layer("conv_pw_5_relu").output # 28 * 28 image size
+  block3 = model.get_layer("conv_pw_11_relu").output # 14 * 14 image size
+  block4 = model.get_layer("conv_pw_13_relu").output # Final layer of mobile net . 7*7 image size
+
+  x = Concatenate()([UpSampling2D()(block4), block3]) # Upsample the 7*7 by 2, and concatenate with the corr size of 14*14 layer -> Result 14 * 14
+  x = Concatenate()([UpSampling2D()(x), block2]) # Upsample the 14*14 from prev layer by 2, and concatenate with block 2 size --> Result 28*28
+  x = Concatenate()([UpSampling2D()(x), block1]) # Upsample the 28*28 from prev layer by 2, and concatenate with block 1 size --> Result 56*56
+  x = Concatenate()([UpSampling2D()(x), block]) # Upsample the 56*56 by 2, and concatenate with block size --> Result 112*112
+  x = UpSampling2D()(x) # Upsample it to 224*224
+  x = Conv2D(1, kernel_size=1, activation="sigmoid")(x) # Returns a one single segmentation image mask for the face in the image
+  
+  x = Reshape((IMAGE_WIDTH, IMAGE_HEIGHT))(x) 
+
+  return Model(inputs=model.input, outputs=x)
+
+model = Create_Model()
+
+# Print summary
+model.summary()
+
+def dice_coefficient(y_true, y_pred):
+    numerator = 2 * tf.reduce_sum(y_true * y_pred)
+    denominator = tf.reduce_sum(y_true + y_pred)
+    return numerator / (denominator + tf.keras.backend.epsilon())
+
+def loss(y_true, y_pred):
+    return binary_crossentropy(y_true, y_pred) - tf.log(dice_coefficient(y_true, y_pred) + tf.keras.backend.epsilon())
+    
+ optimizer = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+
+model.compile(loss=loss, optimizer=optimizer, metrics=[dice_coefficient])
+
+checkpoint = ModelCheckpoint("model-{loss:.2f}.h5", monitor="loss", verbose=1, save_best_only=True,
+                             save_weights_only=True, mode="min", period=1)
+stop = EarlyStopping(monitor="loss", patience=Patience, mode="min")
+reduce_lr = ReduceLROnPlateau(monitor="loss", factor=0.2, patience=Patience, min_lr=1e-6, verbose=1, mode="min")
+
+model.fit(x = X_train,y = masks,epochs=Epochs,batch_size= Batch_size ,callbacks=[checkpoint, reduce_lr, stop],shuffle=True,verbose=1)
+
+#Visualize the predictions
+for n in range(0,20):
+  sample_image = X_train[n]
+  img_array = np.expand_dims(sample_image, axis=0)
+  plt.imshow(sample_image)
+  plt.show()
+  prediction = model.predict(img_array)
+  plt.imshow(prediction[0])
+  plt.show()
 
