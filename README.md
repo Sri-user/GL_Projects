@@ -14,11 +14,13 @@ Applied statistics techniques learned to leverage more information on the insura
 # Project 2 - Classification Model :
 Objective is to identify pattern in the data and decide who is more likely to get a personal loan
 
-   Data: SupervisedLearning_ClassificationModel.zip
+   Data: SupervisedLearning_ClassificationModel.zip.
+   
   The file Bank.xls contains data on 5000 customers. The data include customer demographic information (age, income, etc.), the           customer's relationship with the bank (mortgage, securities account, etc.), and the customer response to the last personal loan         campaign (Personal Loan). Among these 5000 customers, only 480 (= 9.6%) accepted the personal loan that was offered to them in the       earlier campaign.
 
-   Ipython code: Project - PersonalLoanModelling_ClassificationModel.ipynb
-   Analysed and visualized data and cleansed the data to remove the columns which were not needed for the modelling. Used Logistic          regression and naive bayes to model the binary classification model to predict the potential loan customers
+  Ipython code: Project - PersonalLoanModelling_ClassificationModel.ipynb
+  
+  Analysed and visualized data and cleansed the data to remove the columns which were not needed for the modelling. Used Logistic         regression and naive bayes to model the binary classification model to predict the potential loan customers
 
 # Project 3 - Unsupervised Learning :
 The purpose is to classify a given silhouette as one of three types of vehicle, using a set of features extracted from the silhouette. The vehicle may be viewed from one of many different angles
