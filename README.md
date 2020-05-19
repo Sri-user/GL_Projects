@@ -39,18 +39,22 @@ The purpose is to classify a given silhouette as one of three types of vehicle, 
 Modeling of strength of high performance concrete using Machine Learning
 
    Data - FeatureEngineeringTechniques_Regression.zip
+   
    The concrete compressive strength is a highly nonlinear function of age and ingredients. These ingredients include cement, blast        furnace slag, fly ash, water, superplasticizer, coarse aggregate, and fine aggregate.
    
    Ipython code - FeautureEngineering.ipynb
+   
    Handled outliers and missing values and build regression models using Linear regression. Created new clusters within the data by        analysing the data using K-means and built model for each each cluster using random forest regressor. Used cross validation              techniques and gridsearchCV to find and tune the best hyperparameters for the model
  
 # Project 5 - Supervised Learning - Classification
 Based on the previous marketing campaigns, predict whether a customer is more likely to do a term deposit in bank
 
    Data - EnsemblingTechiniques.zip
+   
    The data is related with direct marketing campaigns of a Portuguese banking institution. The marketing campaigns were based on phone    calls. Often, more than one contact to the same client was required, in order to access if the product (bank term deposit) would be      ('yes') or not ('no') subscribed.
    
    Ipython code - EnsembledTechniques_Project.ipynb
+   
    Used Gradient and Ada boosting on the existing decision tree model built, to improve the precision and recall for the classes
    
 # Project 6 - Neural Networks - Digit recognition
@@ -59,6 +63,7 @@ SVHN is a real-world image dataset for developing machine learning and objectrec
    Data - https://drive.google.com/file/d/1L2-WXzguhUsCArrFUc8EEkXcj33pahoS/view
    
    Ipython code - DL_SVNH.ipynb
+   
    Created a sequential model with keras using RELU layers and softmax layer at the output to classicy 10 numbers (0-9). Modified the      image using numpy to remove the unwanted pieces of image to improve the accuracy. Implemented batch normalization for training the      neural network. Created a confusiion matrix for each class and have displayed precision, recall and f1 score for each class
 
 # Project 7 - Face Detection
@@ -67,15 +72,18 @@ Goal is to build a face detection model which includes building a face detector 
    Data - https://drive.google.com/file/d/1rolp8QqyKkvxJwlBAPPGtG2f3JA7hMwk/view
    
    Ipython code - FaceDetection_GL.ipynb
+   
    Analyzed and visualized the images which were in .npy format. Created an numpy array with1’s in the faces and 0’s elsewhere for each    image, using the metadata bounding box information present in the .npy dataset (Ytrain data). Used mobile net model for object          detection from keras, and used transfer learning to make the last 6 layers trainable and freezed the remaining layers. Implemented a    UNet architecture and up sampled the layers from mobilenet
 
 # Project 8 - Face Recognition
 Recoginise and find difference between the faces of hollywood stars using CNN 
    
    Data - https://drive.google.com/file/d/1AuJ7yQlq3FhRFZy3MK2DwvtxtFgTDP2h/view
+   
    This dataset contains 10.770 images for 100 people. All images are taken from 'Pinterest' and aligned using dlib library
    
    Ipython code - FaceRecognition_GL.ipynb
+   
    We use a pre-trained model trained on Face recognition to recognize similar faces and find whether two given faces are of the same      person or not. Created an embedding for each image, mapping face features as a vector representation. Later an euclidean distance        method is employed to calculate the distance and predict how similar a test image is to the trained image. Created a training and        test data from the images and scaled these images using Standard Scaler from scikit learn. Features from embedding were analysed        using PCA to find the cumulative variance and reduced the number of features which would explain more than 95 percent of the variance    in each image. Implemented SVM classifier on the already trained VGG Face to predict/recognize the test image
    Achieved a 96 percent accuracy of recognizing faces
    
@@ -84,6 +92,7 @@ Recoginise and find difference between the faces of hollywood stars using CNN
    Data - keras imdb dataset
    
    Ipython code -  IMBD_MovieReview_NLP.ipynb
+   
    Got the word index and then created a key-valuepair for word and word_id.Build a Sequential Model using Keras for the                    Sentiment Classification task. GeneratedWord Embeddings and retrieved outputs of each layer with Keras
    
 # Project 10 - Sarcasm detection using Birectional LSTM
@@ -91,6 +100,7 @@ Recoginise and find difference between the faces of hollywood stars using CNN
    Data - https://github.com/rishabhmisra/News-Headlines-Dataset-For-Sarcasm-Detection
    
    Ipython code - SarcasmDetection.ipynb
+   
    Tokenized the words from each sentence using Tokenizer class. Created an word embedding using the existing Glove embedding of            Wikipedia. Created an embedding matrix with values matching our glove embedding with the word to index obtained from the tokenizer      class Implemented a Bidirectional LSTM model to predict the sarcasm in the sentence
    
 
